@@ -1,0 +1,12 @@
+{
+  "name": "hello-world",
+  "version": "1.0.0",
+  "description": "Example skill that greets the user and confirms the marketplace is working.",
+  "author": {
+    "name": "eth-pyke"
+  },
+  "repository": "https://github.com/eth-pyke/claude-skills",
+  "keywords": [
+    "example"
+  ]
+}

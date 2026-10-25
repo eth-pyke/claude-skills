@@ -1,0 +1,23 @@
+{
+  "name": "eth-pyke-skills",
+  "owner": {
+    "name": "eth-pyke"
+  },
+  "metadata": {
+    "description": "Custom Claude Code skills by eth-pyke"
+  },
+  "plugins": [
+    {
+      "name": "hello-world",
+      "source": "./plugins/hello-world",
+      "description": "Example skill that greets the user and confirms the marketplace is working.",
+      "category": "examples"
+    },
+    {
+      "name": "weekly-job-digest",
+      "source": "./plugins/weekly-job-digest",
+      "description": "Set up a personalized weekly job-search digest that emails new, well-fitting postings.",
+      "category": "productivity"
+    }
+  ]
+}
