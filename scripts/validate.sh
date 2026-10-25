@@ -7,7 +7,7 @@ for dir in "$ROOT"/skills/*/; do
   name="$(basename "$dir")"; f="$dir/SKILL.md"
   if [[ ! -f "$f" ]]; then echo "✗ $name: missing SKILL.md"; fail=1; continue; fi
   [[ "$(head -1 "$f")" == "---" ]] || { echo "✗ $name: no frontmatter"; fail=1; continue; }
-  fm_name="$(awk '/^---$/{n++; next} n==1 && /^name:/{sub(/^name:[ ]*/,""); print; exit}' "$f")"
+  fm_name="$(awk '/^---$/{n++; next} n==1 && /^name:/{sub(/^name:[ ]*/,""); gsub(/["']/,""); print; exit}' "$f")"
   fm_desc="$(awk '/^---$/{n++; next} n==1 && /^description:/{print; exit}' "$f")"
   [[ "$fm_name" == "$name" ]] || { echo "✗ $name: frontmatter name '$fm_name' != folder name"; fail=1; }
   [[ -n "$fm_desc" ]] || { echo "✗ $name: missing description"; fail=1; }
