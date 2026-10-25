@@ -18,6 +18,7 @@ digest with direct application links, so you never see the same role twice.
 - Scheduled tasks (routines) enabled for your account.
 - Google Docs / Drive connector for the log document.
 - Gmail connector if you want the digest emailed to you (optional).
+- A cloud environment with Custom network access that allows `boards-api.greenhouse.io`, `api.lever.co` and `api.ashbyhq.com` (plus `boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`). Without it, runs cannot verify posting dates.
 
 ## Usage
 

@@ -7,6 +7,16 @@ description: "Set up a personalized weekly job-search digest: gather criteria, c
 
 Set up a recurring scheduled task that searches the web each week for NEW job postings that fit the user, logs them so they are never repeated, and emails a clean HTML digest.
 
+## 0. Prerequisite: an environment that can reach the job board APIs
+
+Scheduled runs use a cloud environment, and the default one only allows a trusted-domain allowlist, which blocks career sites and ATS boards (runs then find nothing verifiable). Before creating the task, have the user create or edit a dedicated environment (claude.ai/code, environment settings) with network access set to **Custom** and these domains allowed:
+- `boards-api.greenhouse.io`, `boards.greenhouse.io`
+- `api.lever.co`, `jobs.lever.co`
+- `api.ashbyhq.com`, `jobs.ashbyhq.com`
+- Optional, company career sites that matter to the user (for example `careers.snowflake.com`, `www.okta.com`), plus any ATS domain a blocked company redirects to.
+
+Ask for the environment's name, look up its id (the schedule skill lists environments), and use that id for the task. Do not continue with the default environment unless the user declines; if they do, tell them runs will rely on search snippets only and most roles will land in "Date unverified". Confirm the setup in step 5 by checking that the test run's search-limits section shows the APIs responding.
+
 ## 1. Gather the criteria (ask briefly, in one AskUserQuestion round if available)
 
 Get these from the user, using their resume if they attach or link one (read it before asking):
@@ -22,8 +32,8 @@ Build a short PROFILE paragraph from the resume: current level and employer, yea
 
 ## 2. Know the limits (tell the user honestly)
 
-- Scheduled runs search with WebSearch/WebFetch only, and their shell network is limited to an allowlist (Trusted network access). Levels.fyi, Indeed, Glassdoor and LinkedIn are usually not fetchable, and runs must not scrape or work around that. Give the user links to their company pages instead of pulling pay or review numbers from them, and mark guessed URLs "(unverified)".
-- If the user wants the run to call job-board APIs (Greenhouse boards-api.greenhouse.io, Lever api.lever.co, Ashby api.ashbyhq.com), they must set the run's environment network access to Custom and allow those domains, then the prompt can be updated to use them. These APIs expose posted dates.
+- Scheduled runs only reach the domains the environment allows (step 0); with the default Trusted network access they are limited to search results. Levels.fyi, Indeed, Glassdoor and LinkedIn are usually not fetchable, and runs must not scrape or work around that. Give the user links to their company pages instead of pulling pay or review numbers from them, and mark guessed URLs "(unverified)".
+- Job-board APIs (Greenhouse boards-api.greenhouse.io, Lever api.lever.co, Ashby api.ashbyhq.com) expose posted dates and direct links, and the run uses them first once the step 0 environment is in place. Board tokens are guessed from company names, so some companies will 404; workday and custom career sites are only reachable by search/fetch.
 - Each scheduled run starts fresh with no memory, so repeats are prevented with a log document, not memory.
 - Search coverage from aggregators is thin. Ask the run to check company career pages and ATS boards (Greenhouse, Lever, Ashby, Workday) directly for a list of target companies suited to the user.
 - Many posting pages show no date, so a strict recency rule will drop or demote some real roles; say so.
@@ -39,7 +49,7 @@ Create one scheduled task (weekly cron, in the user's time zone via CRON_TZ). Tu
 - Step 0: read the log doc, never repeat a seen role, treat "(none yet)" as a placeholder, say plainly when nothing new fits.
 - The PROFILE paragraph.
 - Hard filters, listed as exclusions rather than maybes: level; maximum required experience; compensation (by default include a role when the target falls inside its posted range, meaning the top of the range reaches it, even if the low end is below it; exclude only when the top is under the target; always show the full posted range; if no range is posted include only when the company is known to pay that much and mark "not posted, estimated"); location priority order; skill fit with at most one major gap; hard requirements the user cannot meet; still open; strict recency (posting date within the last 14 days of the run date, established from the page, its structured data/JSON-LD, an ATS date field or a dated job-board listing; a "New" tag alone does not count; reposts count only if the original post date qualifies; roles that pass every other filter but have no verifiable date go only in a separate "Date unverified" section, never in the main list or the count); skip the user's current employer.
-- Search strategy: target-company career pages and ATS boards, not only aggregators.
+- Search strategy: query the Greenhouse (`boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true`), Lever (`api.lever.co/v0/postings/{company}?mode=json`) and Ashby (`api.ashbyhq.com/posting-api/job-board/{name}?includeCompensation=true`) APIs first for a list of target companies, guessing the token from the company name and skipping 404s, then filter locally by title, location and posted date (API dates count as verified; the API's posting URL is the direct link). Supplement with WebSearch/WebFetch for companies on other systems. The search-limits section must list which APIs and companies were reachable and which failed.
 - Job links: always the DIRECT posting on the company or ATS page, never an aggregator, search page or tracking URL; if it cannot be traced to the direct posting, drop the role.
 - Company reference links (Levels.fyi salary page and Indeed company page), found by search or built from the standard patterns and marked "(unverified)". Never fetch or scrape those sites.
 - A plain-text final message format: date and one-line summary, then ranked roles (company and title, location, full posted comp range and posted date, why it fits with any minor gap, apply link, reference links), near misses with reasons (including roles dropped as too old), the Date unverified section, sources, search limits.

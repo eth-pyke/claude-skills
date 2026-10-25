@@ -1,6 +1,6 @@
 {
   "name": "weekly-job-digest",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Set up a personalized weekly job-search digest that emails new, well-fitting postings.",
   "author": {
     "name": "eth-pyke"
